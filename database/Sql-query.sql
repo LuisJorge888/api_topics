@@ -1,0 +1,3 @@
+CREATE DATABASE topics;
+
+create table topic (id SERIAL PRIMARY KEY, name VARCHAR(50), create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP, delete_at TIMESTAMP);
