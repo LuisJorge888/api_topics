@@ -5,7 +5,7 @@ function sendResponseJson(body, statusNumber, res, parseBody = true) {
     }
 
     if(body == null){
-        body = "Body Empty?";
+        body = {};
     }
     
     res.setHeader('Content-Type', 'application/json');

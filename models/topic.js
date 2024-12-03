@@ -3,10 +3,11 @@ const { db } = require('../database/connection');
 
 class Topic {
 
-    constructor(name = "", create_at = null, id = null, updated_at = null, delete_at = null){
+    constructor(name = "", current_price = null, create_at = null, id = null, updated_at = null, delete_at = null){
 
         this.id         = id;
         this.name       = name;
+        this.price      = current_price;
         this.create_at  = create_at;
         this.updated_at = updated_at;
         this.delete_at  = delete_at;
@@ -20,7 +21,8 @@ class Topic {
         return {
             id:          this.id.toString(), // This is bc serialize BigInt in JSON error.
             name:        this.name,
-            last_update: this.updated_at,
+            price:       this.price,
+            last_update: this.updated_at
         }
     }
 
@@ -28,27 +30,32 @@ class Topic {
         this.name = newName;
     }
 
-    create(){
+    async create(){
 
         try {
-            let success = db.query(
-                `INSERT INTO topic (name) VALUES(?);`,
-                [this.name], (err, rows) => {
+
+            let insert = await db.query(
+                `INSERT INTO tp_topic (tp_name, tp_current_price) VALUES (?,?);`,
+                [this.name, this.price], (err, rows) => {
 
                     if (err) {
                         //res.status(400).send(err.message);
-                        return false;
+
+                        return null;
                     } else {
                         //res.status(201).json({ id: rows.insertId });
-
-                        this.id = rows.insertId;
-                        return true;
+                        return rows;
                     }
-
                 }
             );
 
-            return success;
+            if(insert == null){
+                return false;
+            }
+
+            this.id = insert.insertId;
+
+            return true;
 
         } catch (err) {
             //res.status(500).send(err.message);
@@ -61,7 +68,7 @@ class Topic {
         try {
 
             let success = await db.query(
-                `SELECT * FROM topic WHERE delete_at IS NULL AND id = ?`,
+                `SELECT * FROM tp_topic WHERE tp_delete_at IS NULL AND tp_id = ?`,
                 [idTopic], (err, rows) => {
 
                     if (err) {
@@ -80,7 +87,7 @@ class Topic {
             }
 
             
-            let topic = new Topic(success[0].name, success[0].create_at, success[0].id, success[0].updated_at, success[0].delete_at);
+            let topic = new Topic(success[0].tp_name, success[0].tp_current_price, success[0].tp_create_at, success[0].tp_id, success[0].tp_updated_at, success[0].tp_delete_at);
 
             return topic;
 
@@ -96,7 +103,7 @@ class Topic {
         try {
 
             let success = await db.query(
-                `SELECT * FROM topic WHERE delete_at IS NULL`,
+                `SELECT * FROM tp_topic WHERE tp_delete_at IS NULL`,
                 [], (err, rows) => {
 
                     if (err) {
@@ -116,7 +123,7 @@ class Topic {
 
                 success.forEach((item, index) => {
 
-                    let topic = new Topic(item.name, item.create_at, item.id, item.updated_at, item.delete_at);
+                    let topic = new Topic(item.tp_name, item.tp_current_price, item.tp_create_at, item.tp_id, item.tp_updated_at, item.tp_delete_at);
                     topics.push(topic.toPublicData());
                 })
 
@@ -137,7 +144,7 @@ class Topic {
         try {
 
             let success = await db.query(
-                `UPDATE topic SET delete_at = CURRENT_TIMESTAMP WHERE delete_at IS NULL AND id = ?`,
+                `UPDATE tp_topic SET tp_delete_at = CURRENT_TIMESTAMP WHERE tp_delete_at IS NULL AND tp_id = ?`,
                 [this.id], (err, rows) => {
 
                     if (err) {
@@ -169,7 +176,7 @@ class Topic {
         try {
 
             let success = await db.query(
-                `UPDATE topic SET updated_at = CURRENT_TIMESTAMP, name = ? WHERE delete_at IS NULL AND id = ?`,
+                `UPDATE tp_topic SET tp_updated_at = CURRENT_TIMESTAMP, tp_name = ? WHERE tp_delete_at IS NULL AND tp_id = ?`,
                 [this.name, this.id], (err, rows) => {
 
                     if (err) {

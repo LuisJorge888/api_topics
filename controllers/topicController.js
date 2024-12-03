@@ -1,4 +1,6 @@
 const Topic = require('../models/topic');
+const Price = require('../models/price');
+
 const { sendResponseJson } = require('../utils/responseHandler');
 
 class TopicController{
@@ -7,21 +9,29 @@ class TopicController{
 
     };
 
-    create(req, res){
+    async create(req, res){
 
         let data = {
-            name : req.body.name
+            name  : req.body.name,
+            price : req.body.price 
         }
         
         let resCode = null;
         let msg     = null;
 
-        let topic = new Topic(data.name);
+        let topic = new Topic(data.name, data.price);
 
-        if(topic.create()){
+        if(await topic.create()){
 
-            resCode = 201;
-            msg     = "OK"; 
+            console.table(topic)
+            
+            let newPrice = new Price(null, data.price, topic.id);
+
+            if(await newPrice.create()){
+                resCode = 201;
+                msg     = "OK"; 
+            }
+            
         }else{  
             resCode = 400;
             msg     = "ups!!";

@@ -1,11 +1,12 @@
 const { sendResponseJson } = require('../utils/responseHandler');
 
-function validateBodyDataName(req, res, next){
+function validateBodyDataTopic(req, res, next){
 
     let errors  = [];
 
     let data = {
-        name : req.body.name
+        name : req.body.name,
+        price: req.body.price
     }
 
     if(data.name == "" || data.name == null){
@@ -14,6 +15,22 @@ function validateBodyDataName(req, res, next){
 
     if((data.name != "" || data.name != null) & data.name.length > 48){
         errors.push("name can't have more than 48 charters.")
+    }
+
+    if(data.price == "" || data.price == null){
+
+        errors.push("price can't be null.")
+    }else{
+
+        if(!Number.isInteger(data.price)){
+
+            errors.push("price must be a number.")
+        }else{
+
+            if(parseInt(data.id) < 0){
+                errors.push("price must be mayor than or equals to 0.")
+            }
+        }   
     }
 
     if(errors.length == 0){
@@ -36,8 +53,9 @@ function validateParamId(req, res, next){
         errors.push("Id is required.")
 
     }else{
+        console.log(Number(data.id));
 
-        if(!Number.isInteger(data.id)){
+        if(Number(data.id) === NaN){
 
             errors.push("Id must be a number.")
         }else{
@@ -58,6 +76,6 @@ function validateParamId(req, res, next){
 
 
 module.exports = {
-    validateBodyDataName,
+    validateBodyDataTopic,
     validateParamId
 }
